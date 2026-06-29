@@ -7,8 +7,8 @@
 | T1 | Project Scaffold | `done` | — | [T1-scaffold.md](plans/T1-scaffold.md) | `requirements.txt`, `.env.example`, `.gitignore`, `main.py`, all `__init__.py`, `output/.gitkeep`, `materials/.gitkeep` |
 | T2 | Config Layer | `done` | T1 | [T2-config.md](plans/T2-config.md) |
 | T3 | Store — Models | `done` | T2 | [T3-models.md](plans/T3-models.md) |
-| T4 | Store — DB + Repositories | `in_progress` | T3 | [T4-repositories.md](plans/T4-repositories.md) |
-| T5 | LLM Client | `pending` | T2 | [T5-llm-client.md](plans/T5-llm-client.md) |
+| T4 | Store — DB + Repositories | `done` | T3 | [T4-repositories.md](plans/T4-repositories.md) |
+| T5 | LLM Client | `in_progress` | T2 | [T5-llm-client.md](plans/T5-llm-client.md) |
 | T6 | Prompt Templates | `pending` | T1 | [T6-prompts.md](plans/T6-prompts.md) |
 | T7 | Source Layer | `pending` | T2, T3 | [T7-sources.md](plans/T7-sources.md) |
 | T8 | Orchestrator — State + Errors + Router | `pending` | T3 | [T8-orch-state.md](plans/T8-orch-state.md) |

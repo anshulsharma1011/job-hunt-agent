@@ -107,8 +107,12 @@ if __name__ == "__main__":
 ## Steps
 
 1. Create all directories and `__init__.py` files
-2. Write `requirements.txt`, `.env.example`, `.gitignore`
+2. Write `requirements.txt`, `.env.example`, `.gitignore` (include `.venv/`)
 3. Write `main.py`
-4. Run `pip install -r requirements.txt` — verify clean install
-5. Run `python main.py --help` — should not error (CLI stubbed in T14)
+4. Create and activate virtualenv:
+   ```bash
+   python3.12 -m venv .venv
+   source .venv/bin/activate
+   ```
+5. Run `pip install -r requirements.txt` inside venv — verify clean install
 6. Commit

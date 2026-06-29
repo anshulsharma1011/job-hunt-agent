@@ -4,7 +4,7 @@
 
 | ID | Task | Status | Depends On | Plan |
 |----|------|--------|------------|------|
-| T1 | Project Scaffold | `pending` | — | [T1-scaffold.md](plans/T1-scaffold.md) |
+| T1 | Project Scaffold | `done` | — | [T1-scaffold.md](plans/T1-scaffold.md) | `requirements.txt`, `.env.example`, `.gitignore`, `main.py`, all `__init__.py`, `output/.gitkeep`, `materials/.gitkeep` |
 | T2 | Config Layer | `pending` | T1 | [T2-config.md](plans/T2-config.md) |
 | T3 | Store — Models | `pending` | T2 | [T3-models.md](plans/T3-models.md) |
 | T4 | Store — DB + Repositories | `pending` | T3 | [T4-repositories.md](plans/T4-repositories.md) |

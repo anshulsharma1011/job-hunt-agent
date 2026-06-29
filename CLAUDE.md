@@ -149,6 +149,42 @@ Commit at logical sub-unit boundaries — not after every file, not only after a
 
 ---
 
+## Branching & Sync Workflow
+
+### Remotes
+- `origin` → `anshulsharma1011/job-hunt-agent` (your fork — push all work here)
+- `upstream` → `vladput6969/job-hunt-agent` (original repo — raise PRs here, never push directly)
+
+### Working on a Task
+
+Always work on a feature branch, never directly on `main`:
+
+```bash
+git checkout -b feature/T1-scaffold    # one branch per task
+# ... implement, commit incrementally ...
+git push origin feature/T1-scaffold    # push branch to your fork
+# raise PR: anshulsharma1011/job-hunt-agent → vladput6969/job-hunt-agent
+```
+
+### After a PR is Merged
+
+Sync your fork's `main` with upstream before starting the next task:
+
+```bash
+git checkout main
+git pull upstream main        # pull merged changes from original
+git push origin main          # keep your fork in sync
+git branch -d feature/T1-scaffold  # delete the merged branch locally
+```
+
+### Rules
+- `main` on your fork must always mirror `upstream/main` — never commit work directly to `main`
+- One branch per WBS task — name it `feature/T<id>-<short-description>`
+- Delete the local branch after the PR is merged and `main` is synced
+- Never push to `upstream` directly — only via PRs from your fork
+
+---
+
 ## Documentation
 
 - Local docs are in `docs/`. Always update local docs first.

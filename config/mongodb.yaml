@@ -1,0 +1,3 @@
+uri: mongodb://localhost:27017
+database: job_hunt_db
+test_database: test_job_hunt_db

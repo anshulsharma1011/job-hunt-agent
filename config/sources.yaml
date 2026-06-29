@@ -1,0 +1,20 @@
+greenhouse:
+  policy: allowed
+  enabled: true
+  companies: []
+  max_per_run: 50
+
+indeed:
+  policy: allowed
+  enabled: true
+  location: "India"
+  max_per_run: 50
+
+linkedin:
+  policy: allowed
+  enabled: true
+  max_requests_per_cycle: 5
+
+naukri:
+  policy: human-assisted
+  enabled: true

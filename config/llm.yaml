@@ -1,0 +1,4 @@
+model: ollama/llama3.1:8b
+base_url: http://localhost:11434
+timeout_seconds: 120
+token_budget_per_cycle: 50000

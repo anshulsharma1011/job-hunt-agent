@@ -8,31 +8,21 @@ All Pydantic data models in one file. Every layer imports data shapes from here 
 
 ## Files to Create
 
+One class per file. `store/models.py` re-exports all via `__all__`.
+
 ```
+store/lifecycle_state.py
+store/recommended_track.py
+store/source_policy.py
+store/experience_entry.py
+store/search_criteria.py
+store/profile_doc.py
+store/raw_opportunity.py
+store/lifecycle_event.py
+store/scored_opportunity.py
+store/cycle_record.py
 store/models.py
 tests/store/test_models.py
-```
-
-## Models (in definition order)
-
-```python
-# Enums
-class LifecycleState(str, Enum): ...     # discovered → closed
-class RecommendedTrack(str, Enum): ...   # apply | outreach | skip
-class SourcePolicy(str, Enum): ...       # allowed | human-assisted | blocked
-
-# Profile
-class ExperienceEntry(BaseModel): ...
-class SearchCriteria(BaseModel): ...
-class ProfileDoc(BaseModel): ...
-
-# Opportunity
-class RawOpportunity(BaseModel): ...
-class LifecycleEvent(BaseModel): ...
-class ScoredOpportunity(BaseModel): ...
-
-# Cycle
-class CycleRecord(BaseModel): ...
 ```
 
 Full field definitions in `docs/LLD.md §2`.

@@ -5,8 +5,8 @@
 | ID | Task | Status | Depends On | Plan |
 |----|------|--------|------------|------|
 | T1 | Project Scaffold | `done` | — | [T1-scaffold.md](plans/T1-scaffold.md) | `requirements.txt`, `.env.example`, `.gitignore`, `main.py`, all `__init__.py`, `output/.gitkeep`, `materials/.gitkeep` |
-| T2 | Config Layer | `in_progress` | T1 | [T2-config.md](plans/T2-config.md) |
-| T3 | Store — Models | `pending` | T2 | [T3-models.md](plans/T3-models.md) |
+| T2 | Config Layer | `done` | T1 | [T2-config.md](plans/T2-config.md) |
+| T3 | Store — Models | `in_progress` | T2 | [T3-models.md](plans/T3-models.md) |
 | T4 | Store — DB + Repositories | `pending` | T3 | [T4-repositories.md](plans/T4-repositories.md) |
 | T5 | LLM Client | `pending` | T2 | [T5-llm-client.md](plans/T5-llm-client.md) |
 | T6 | Prompt Templates | `pending` | T1 | [T6-prompts.md](plans/T6-prompts.md) |

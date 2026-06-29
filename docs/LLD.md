@@ -141,31 +141,46 @@ def reset_config_cache() -> None:
 
 ---
 
-## 2. Pydantic Data Models (`store/models.py`)
+## 2. Pydantic Data Models (`store/`)
 
-Single source of truth for all data shapes. Every layer imports from here.
+Single source of truth for all data shapes. Every layer imports from `store.models` which re-exports all symbols. Each class lives in its own file.
+
+```
+store/
+├── lifecycle_state.py      # LifecycleState enum
+├── recommended_track.py    # RecommendedTrack enum
+├── source_policy.py        # SourcePolicy enum
+├── experience_entry.py     # ExperienceEntry
+├── search_criteria.py      # SearchCriteria
+├── profile_doc.py          # ProfileDoc
+├── raw_opportunity.py      # RawOpportunity
+├── lifecycle_event.py      # LifecycleEvent
+├── scored_opportunity.py   # ScoredOpportunity
+├── cycle_record.py         # CycleRecord
+└── models.py               # re-exports all of the above via __all__
+```
 
 ### Enums
 
 ```python
-class LifecycleState(str, Enum):
+class LifecycleState(str, Enum):    # store/lifecycle_state.py
     discovered = "discovered"
     scored = "scored"
     shortlisted = "shortlisted"
     rejected = "rejected"
-    drafted = "drafted"               # Phase 2
-    awaiting_approval = "awaiting_approval"  # Phase 2
-    approved = "approved"             # Phase 2
-    sent = "sent"                     # Phase 2
-    following_up = "following_up"     # Phase 3
+    drafted = "drafted"               # TODO Phase 2
+    awaiting_approval = "awaiting_approval"  # TODO Phase 2
+    approved = "approved"             # TODO Phase 2
+    sent = "sent"                     # TODO Phase 2
+    following_up = "following_up"     # TODO Phase 3
     closed = "closed"
 
-class RecommendedTrack(str, Enum):
+class RecommendedTrack(str, Enum):  # store/recommended_track.py
     apply = "apply"
     outreach = "outreach"
     skip = "skip"
 
-class SourcePolicy(str, Enum):
+class SourcePolicy(str, Enum):      # store/source_policy.py
     allowed = "allowed"
     human_assisted = "human-assisted"
     blocked = "blocked"
@@ -876,7 +891,17 @@ job-hunt-agent/
 │
 ├── store/
 │   ├── __init__.py
-│   ├── models.py
+│   ├── lifecycle_state.py
+│   ├── recommended_track.py
+│   ├── source_policy.py
+│   ├── experience_entry.py
+│   ├── search_criteria.py
+│   ├── profile_doc.py
+│   ├── raw_opportunity.py
+│   ├── lifecycle_event.py
+│   ├── scored_opportunity.py
+│   ├── cycle_record.py
+│   ├── models.py             # re-exports all via __all__
 │   ├── db.py
 │   └── repositories/
 │       ├── __init__.py

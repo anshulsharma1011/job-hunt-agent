@@ -1,5 +1,18 @@
 # Job Hunt Agent — Claude Instructions
 
+## WBS — Always Read First
+
+**At the start of every session, read `docs/WBS.md` before doing anything else.**
+
+- The status table shows what is done, in-progress, and pending — use it to orient without re-reading the codebase.
+- When starting a task: update its status to `in_progress` in `docs/WBS.md` and update the `Files Created / Modified` column.
+- When completing a task: update its status to `done` and commit the WBS change along with the implementation.
+- If a task is blocked: set status to `blocked` and add a note in the plan file explaining why.
+- Before implementing any task: read its plan file from `docs/plans/`. Do not implement from memory.
+- Never read the entire codebase to understand state — the WBS table is the source of truth for what exists.
+
+---
+
 ## Project Context
 
 A locally-run, India-first AI agent that discovers, scores, and ranks job opportunities. Phase 1 is fully read-only — no outbound actions. Everything that could touch the outside world on the user's behalf is gated behind a human approval step (Phase 2+).

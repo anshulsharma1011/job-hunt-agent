@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from pymongo import ReplaceOne
 from pymongo.database import Database
 
@@ -8,7 +10,7 @@ from store.scored_opportunity import ScoredOpportunity
 
 
 class OpportunityRepository:
-    def __init__(self, db: Database) -> None:
+    def __init__(self, db: Database[dict[str, Any]]) -> None:
         self._col = db[OPPORTUNITIES]
 
     def get_known_external_ids(self, source: str) -> set[str]:

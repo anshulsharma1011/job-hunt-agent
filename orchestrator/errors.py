@@ -2,9 +2,6 @@ class SourceBlockedError(Exception):
     pass
 
 
-class RateLimitExceededError(Exception):
-    pass
-
 
 class BudgetExceededError(Exception):
     pass

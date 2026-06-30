@@ -17,8 +17,22 @@ source ./scale_up.sh
 Once setup is done:
 
 ```bash
-python main.py
+job-hunt run                                    # full cycle: profile check → fetch → score → report
+job-hunt profile setup materials/resume.pdf     # parse resume and save profile
+job-hunt profile show                           # view active profile
+job-hunt report                                 # print latest cycle report
+job-hunt status                                 # print last cycle summary
 ```
+
+When you're done:
+
+```bash
+source ./scale_down.sh
+```
+
+See [RUNBOOK.md](docs/RUNBOOK.md) for the full command reference, config options, and troubleshooting.
+
+---
 
 ## Session Scripts
 
@@ -27,8 +41,7 @@ Always use `source` so the scripts can activate/deactivate the venv in your shel
 | Script | What it does |
 |--------|-------------|
 | `source ./scale_up.sh` | Install prerequisites, start MongoDB + Ollama, create venv, install dependencies, activate venv |
-| `source ./scale_down.sh` | Stop MongoDB + Ollama services, deactivate venv |
-| `./reset.sh` | *(coming soon)* Reset the environment |
+| `source ./scale_down.sh` | Stop MongoDB + Ollama, kill llama-server, deactivate venv |
 
 ---
 
@@ -36,7 +49,7 @@ Always use `source` so the scripts can activate/deactivate the venv in your shel
 
 | Doc | Description |
 |-----|-------------|
-| [PREREQUISITES.md](docs/PREREQUISITES.md) | Manual walkthrough of what `scale_up.sh` installs — useful if you prefer to install things yourself |
+| [RUNBOOK.md](docs/RUNBOOK.md) | CLI commands, config reference, troubleshooting |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture, design principles, agent roster |
 | [HLD.md](docs/HLD.md) | High Level Design — components, tech stack, phased delivery |
 

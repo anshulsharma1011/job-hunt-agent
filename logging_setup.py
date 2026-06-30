@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
+import os
 from pathlib import Path
 from typing import Any, MutableMapping
 
@@ -46,7 +47,6 @@ def setup_logging(config: LogConfig) -> None:
         file_handler.setFormatter(formatter)
         root.addHandler(file_handler)
 
-    logging.getLogger("litellm").setLevel(logging.WARNING)
-    logging.getLogger("pymongo").setLevel(logging.WARNING)
-    logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("httpcore").setLevel(logging.WARNING)
+    os.environ["LITELLM_LOG"] = "ERROR"
+    for noisy in ("litellm", "LiteLLM", "pymongo", "httpx", "httpcore", "pdfminer", "jobspy"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)

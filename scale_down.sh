@@ -49,12 +49,23 @@ else
 fi
 
 # ── Ollama ────────────────────────────────────────────────────────────────────
-# Stopping Ollama unloads any model currently in RAM.
 
 header "Ollama"
-if brew services list | grep -q "ollama.*started"; then
-  info "Stopping Ollama (unloads model from RAM)…"
-  brew services stop ollama
+# Kill llama-server first — it's a child process that brew services stop won't reap.
+if pgrep -x "llama-server" > /dev/null 2>&1; then
+  info "Killing llama-server…"
+  pkill -x "llama-server"
+  ok "llama-server killed"
+else
+  ok "llama-server not running"
+fi
+
+# Use pgrep to check the actual process — brew services state can be stale (shows
+# "error" instead of "started" after a failed bootstrap, even when ollama is alive).
+if pgrep -x "ollama" > /dev/null 2>&1; then
+  info "Stopping Ollama…"
+  brew services stop ollama 2>/dev/null || true
+  pkill -x "ollama" 2>/dev/null || true
   ok "Ollama stopped"
 else
   ok "Ollama already stopped"

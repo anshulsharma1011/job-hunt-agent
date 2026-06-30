@@ -20,9 +20,9 @@ def apply_source_policy(source_name: str, config: AppConfig) -> None:
     source_cfg = getattr(config.sources, source_name)
     policy = source_cfg.policy
     _log.debug("apply_source_policy: source=%s policy=%s", source_name, policy)
-    if policy == "blocked":
-        _log.warning("apply_source_policy: source=%s is blocked by policy", source_name)
-        raise SourceBlockedError(f"Source '{source_name}' is blocked by policy.")
+    if policy in ("blocked", "human-assisted"):
+        _log.warning("apply_source_policy: source=%s is skipped (policy=%s)", source_name, policy)
+        raise SourceBlockedError(f"Source '{source_name}' is skipped by policy '{policy}'.")
 
 
 def apply_dedup(

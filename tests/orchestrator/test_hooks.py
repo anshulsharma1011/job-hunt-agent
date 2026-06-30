@@ -42,8 +42,9 @@ def test_blocked_source_raises_source_blocked_error(app_config: AppConfig) -> No
         apply_source_policy("greenhouse", app_config)
 
 
-def test_human_assisted_source_does_not_raise(app_config: AppConfig) -> None:
-    apply_source_policy("naukri", app_config)  # policy = human-assisted, must not raise
+def test_human_assisted_source_is_skipped(app_config: AppConfig) -> None:
+    with pytest.raises(SourceBlockedError):
+        apply_source_policy("naukri", app_config)  # human-assisted must be skipped like blocked
 
 
 

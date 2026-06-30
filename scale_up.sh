@@ -135,20 +135,18 @@ else
   ok "Ollama installed"
 fi
 
-if brew services list | grep -q "ollama.*started"; then
-  ok "Ollama service already running"
+if curl -sf http://localhost:11434/ &>/dev/null; then
+  ok "Ollama already responding on localhost:11434"
 else
   info "Starting Ollama service…"
-  brew services start ollama
+  brew services start ollama 2>/dev/null || true
   # Give it a moment to bind
   sleep 3
-  ok "Ollama started"
-fi
-
-if curl -sf http://localhost:11434/ &>/dev/null; then
-  ok "Ollama responding on localhost:11434"
-else
-  warn "Ollama may still be starting — if you see errors later, run: brew services restart ollama"
+  if curl -sf http://localhost:11434/ &>/dev/null; then
+    ok "Ollama started and responding on localhost:11434"
+  else
+    warn "Ollama did not start — run: brew services restart ollama"
+  fi
 fi
 
 # ── 7. AI Model ───────────────────────────────────────────────────────────────
@@ -244,5 +242,5 @@ fi
 
 echo ""
 echo -e "${BOLD}Ready. To run the agent:${NC}"
-echo "  python main.py"
+echo "  job-hunt run"
 echo ""

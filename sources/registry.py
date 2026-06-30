@@ -5,6 +5,7 @@ from sources.interfaces import IJobSource
 from sources.linkedin import LinkedInSource
 from sources.naukri import NaukriSource
 from sources.remoteok import RemoteOKSource
+from sources.weworkremotely import WeWorkRemotelySource
 
 
 def build_source_registry(config: AppConfig) -> list[IJobSource]:
@@ -12,6 +13,7 @@ def build_source_registry(config: AppConfig) -> list[IJobSource]:
         GreenhouseSource(config),
         AdzunaSource(config),
         RemoteOKSource(config),
+        WeWorkRemotelySource(config),
         LinkedInSource(config),
         NaukriSource(config),
     ]

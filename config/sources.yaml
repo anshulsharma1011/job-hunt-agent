@@ -170,6 +170,21 @@ remoteok:
   enabled: true
   max_per_run: 50
 
+weworkremotely:
+  policy: allowed
+  enabled: true
+  max_per_run: 50
+  # Full category list: remote-programming-jobs, remote-devops-sysadmin-jobs,
+  # remote-data-science-jobs, remote-product-jobs, remote-management-finance-jobs,
+  # remote-design-jobs, remote-customer-support-jobs, remote-sales-jobs,
+  # remote-marketing-jobs, remote-copywriting-jobs
+  categories:
+    - remote-programming-jobs
+    - remote-devops-sysadmin-jobs
+    - remote-data-science-jobs
+    - remote-product-jobs
+    - remote-management-finance-jobs
+
 linkedin:
   policy: allowed
   enabled: true

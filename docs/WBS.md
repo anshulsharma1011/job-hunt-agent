@@ -16,7 +16,7 @@
 | T10 | Orchestrator — Nodes + Graph | `done` | T5, T6, T8, T9 | [T10-orch-graph.md](plans/T10-orch-graph.md) |
 | T11 | Profile Agent | `done` | T5, T6 | [T11-profile-agent.md](plans/T11-profile-agent.md) |
 | T11-adhoc | Structured Logging | `done` | T2 | [T11-adhoc-logging.md](plans/T11-adhoc-logging.md) |
-| T12 | Discovery + Match Agent | `pending` | T5, T6, T7 | [T12-discovery-agent.md](plans/T12-discovery-agent.md) |
+| T12 | Discovery + Match Agent | `done` | T5, T6, T7 | [T12-discovery-agent.md](plans/T12-discovery-agent.md) |
 | T13 | Reporter Agent | `pending` | T3 | [T13-reporter-agent.md](plans/T13-reporter-agent.md) |
 | T14 | CLI | `pending` | T10, T11, T12, T13 | [T14-cli.md](plans/T14-cli.md) |
 | T15 | Scheduler | `pending` | T10 | [T15-scheduler.md](plans/T15-scheduler.md) |

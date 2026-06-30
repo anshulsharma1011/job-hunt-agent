@@ -14,7 +14,7 @@
 | T8 | Orchestrator — State + Errors + Router | `done` | T3 | [T8-orch-state.md](plans/T8-orch-state.md) |
 | T9 | Orchestrator — Hooks | `done` | T4, T7, T8 | [T9-orch-hooks.md](plans/T9-orch-hooks.md) |
 | T10 | Orchestrator — Nodes + Graph | `done` | T5, T6, T8, T9 | [T10-orch-graph.md](plans/T10-orch-graph.md) |
-| T11 | Profile Agent | `pending` | T5, T6 | [T11-profile-agent.md](plans/T11-profile-agent.md) |
+| T11 | Profile Agent | `done` | T5, T6 | [T11-profile-agent.md](plans/T11-profile-agent.md) |
 | T12 | Discovery + Match Agent | `pending` | T5, T6, T7 | [T12-discovery-agent.md](plans/T12-discovery-agent.md) |
 | T13 | Reporter Agent | `pending` | T3 | [T13-reporter-agent.md](plans/T13-reporter-agent.md) |
 | T14 | CLI | `pending` | T10, T11, T12, T13 | [T14-cli.md](plans/T14-cli.md) |

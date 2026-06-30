@@ -12,3 +12,4 @@ class SourcePolicyConfig(BaseModel):
     location: Optional[str] = None
     app_id: Optional[str] = None
     api_key: Optional[str] = None
+    categories: list[str] = Field(default_factory=list)

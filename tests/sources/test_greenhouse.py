@@ -61,7 +61,7 @@ def test_is_enabled_reads_config(app_config: AppConfig) -> None:
 
 
 def test_is_enabled_false_when_disabled(app_config: AppConfig) -> None:
-    app_config.sources["greenhouse"].enabled = False
+    app_config.sources.greenhouse.enabled = False
     source = GreenhouseSource(app_config)
     assert source.is_enabled(app_config) is False
 

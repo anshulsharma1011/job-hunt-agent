@@ -16,8 +16,8 @@ class GreenhouseSource:
         self._config = config
 
     def fetch(self, criteria: SearchCriteria) -> list[RawOpportunity]:
-        source_cfg = self._config.sources.get("greenhouse")
-        if not source_cfg or not source_cfg.companies:
+        source_cfg = self._config.sources.greenhouse
+        if not source_cfg.companies:
             return []
 
         title_keywords = [t.lower() for t in criteria.titles]
@@ -65,5 +65,4 @@ class GreenhouseSource:
         return results
 
     def is_enabled(self, config: AppConfig) -> bool:
-        cfg = config.sources.get("greenhouse")
-        return cfg is not None and cfg.enabled
+        return config.sources.greenhouse.enabled

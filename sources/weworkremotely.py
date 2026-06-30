@@ -23,13 +23,13 @@ class WeWorkRemotelySource:
         self._config = config
 
     def _feed_urls(self) -> list[str]:
-        source_cfg = self._config.sources.get("weworkremotely")
-        categories = (source_cfg.categories if source_cfg and source_cfg.categories else _DEFAULT_CATEGORIES)
+        source_cfg = self._config.sources.weworkremotely
+        categories = source_cfg.categories if source_cfg.categories else _DEFAULT_CATEGORIES
         return [_BASE_URL.format(category=cat) for cat in categories]
 
     def fetch(self, criteria: SearchCriteria) -> list[RawOpportunity]:
-        source_cfg = self._config.sources.get("weworkremotely")
-        max_per_run = (source_cfg.max_per_run or 50) if source_cfg else 50
+        source_cfg = self._config.sources.weworkremotely
+        max_per_run = source_cfg.max_per_run
         title_keywords = [t.lower() for t in criteria.titles]
 
         seen_ids: set[str] = set()
@@ -76,5 +76,4 @@ class WeWorkRemotelySource:
         return results
 
     def is_enabled(self, config: AppConfig) -> bool:
-        cfg = config.sources.get("weworkremotely")
-        return cfg is not None and cfg.enabled
+        return config.sources.weworkremotely.enabled

@@ -16,8 +16,8 @@ class RemoteOKSource:
         self._config = config
 
     def fetch(self, criteria: SearchCriteria) -> list[RawOpportunity]:
-        source_cfg = self._config.sources.get("remoteok")
-        max_per_run = (source_cfg.max_per_run or 50) if source_cfg else 50
+        source_cfg = self._config.sources.remoteok
+        max_per_run = source_cfg.max_per_run
 
         # RemoteOK returns all jobs; filter client-side by title keywords
         title_keywords = [t.lower() for t in criteria.titles]
@@ -62,5 +62,4 @@ class RemoteOKSource:
         return results
 
     def is_enabled(self, config: AppConfig) -> bool:
-        cfg = config.sources.get("remoteok")
-        return cfg is not None and cfg.enabled
+        return config.sources.remoteok.enabled

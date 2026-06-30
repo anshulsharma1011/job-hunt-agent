@@ -23,7 +23,7 @@
 | T17 | Integration Tests — Repositories | `pending` | T4 | [T17-integration-tests.md](plans/T17-integration-tests.md) |
 | T18 | End-to-End Smoke Test | `pending` | T14, T16, T17 | [T18-e2e.md](plans/T18-e2e.md) |
 | T19 | Greenhouse Slug Store (Enhancement) | `pending` | T4, T7 | — |
-| T20 | Config Layer Restructure (Enhancement) | `pending` | T2 | — |
+| T20 | Config Layer Restructure (Enhancement) | `in_progress` | T2 | — |
 
 ---
 

@@ -54,5 +54,4 @@ class NaukriSource:
         return results
 
     def is_enabled(self, config: AppConfig) -> bool:
-        cfg = config.sources.get("naukri")
-        return cfg is not None and cfg.enabled
+        return config.sources.naukri.enabled

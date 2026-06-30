@@ -18,18 +18,18 @@ class LinkedInSource:
         self._config = config
 
     def fetch(self, criteria: SearchCriteria) -> list[RawOpportunity]:
-        source_cfg = self._config.sources.get("linkedin")
-        max_requests = source_cfg.max_requests_per_cycle if source_cfg else 5
+        source_cfg = self._config.sources.linkedin
+        max_requests = source_cfg.max_requests_per_cycle
 
         results: list[RawOpportunity] = []
         requests_made = 0
 
         for title in criteria.titles:
-            if requests_made >= (max_requests or 5):
+            if requests_made >= max_requests:
                 break
 
             for location in criteria.locations:
-                if requests_made >= (max_requests or 5):
+                if requests_made >= max_requests:
                     break
 
                 params = {"keywords": title, "location": location, "f_TPR": "r86400", "trk": "public_jobs_jobs-search-bar_search-submit"}
@@ -54,5 +54,4 @@ class LinkedInSource:
         return results
 
     def is_enabled(self, config: AppConfig) -> bool:
-        cfg = config.sources.get("linkedin")
-        return cfg is not None and cfg.enabled
+        return config.sources.linkedin.enabled

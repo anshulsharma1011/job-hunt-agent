@@ -1,23 +1,19 @@
 from pydantic import BaseModel
 
+from config.app_section import AppSection
 from config.llm_config import LLMConfig
 from config.matching_config import MatchingConfig
 from config.mongo_config import MongoConfig
 from config.output_config import OutputConfig
 from config.scheduler_config import SchedulerConfig
-from config.source_config import SourcePolicyConfig
-
-
-class _AppSection(BaseModel):
-    name: str
-    env: str
+from config.sources.sources_config import SourcesConfig
 
 
 class AppConfig(BaseModel):
-    app: _AppSection
+    app: AppSection
     llm: LLMConfig
     matching: MatchingConfig
-    sources: dict[str, SourcePolicyConfig]
+    sources: SourcesConfig
     mongodb: MongoConfig
     scheduler: SchedulerConfig
     output: OutputConfig

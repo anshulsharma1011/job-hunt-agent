@@ -26,8 +26,8 @@ _MOCK_RESPONSE = {"results": [_MOCK_JOB], "count": 1}
 
 
 def _make_config(app_config: AppConfig, app_id: str = "test_id", api_key: str = "test_key") -> AppConfig:
-    app_config.sources["adzuna"].app_id = app_id
-    app_config.sources["adzuna"].api_key = api_key
+    app_config.sources.adzuna.app_id = app_id
+    app_config.sources.adzuna.api_key = api_key
     return app_config
 
 
@@ -50,8 +50,8 @@ def test_fetch_returns_raw_opportunities(app_config: AppConfig) -> None:
 
 
 def test_fetch_raises_when_credentials_missing(app_config: AppConfig) -> None:
-    app_config.sources["adzuna"].app_id = None
-    app_config.sources["adzuna"].api_key = None
+    app_config.sources.adzuna.app_id = ""
+    app_config.sources.adzuna.api_key = ""
     source = AdzunaSource(app_config)
 
     with pytest.raises(SourceBlockedError):

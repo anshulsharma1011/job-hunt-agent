@@ -19,16 +19,14 @@ class AdzunaSource:
         self._config = config
 
     def fetch(self, criteria: SearchCriteria) -> list[RawOpportunity]:
-        source_cfg = self._config.sources.get("adzuna")
-        if not source_cfg:
-            return []
+        source_cfg = self._config.sources.adzuna
         if not source_cfg.app_id or not source_cfg.api_key:
             raise SourceBlockedError(
                 "Adzuna credentials missing — set ADZUNA_APP_ID and ADZUNA_API_KEY in .env"
             )
 
-        max_per_run = source_cfg.max_per_run or 50
-        location = source_cfg.location or "India"
+        max_per_run = source_cfg.max_per_run
+        location = source_cfg.location
         results: list[RawOpportunity] = []
         seen_ids: set[str] = set()
 
@@ -38,7 +36,7 @@ class AdzunaSource:
 
             params = {
                 "app_id": source_cfg.app_id,
-                "app_key": source_cfg.api_key,
+                "app_key": source_cfg.api_key,  # Adzuna uses app_key not api_key
                 "what": title,
                 "where": location,
                 "results_per_page": min(50, max_per_run - len(results)),
@@ -78,5 +76,4 @@ class AdzunaSource:
         return results
 
     def is_enabled(self, config: AppConfig) -> bool:
-        cfg = config.sources.get("adzuna")
-        return cfg is not None and cfg.enabled
+        return config.sources.adzuna.enabled

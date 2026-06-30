@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from orchestrator.deps import Deps
@@ -20,10 +21,11 @@ def load_profile_node(state: CycleState, deps: Deps) -> dict[str, object]:
 
 
 def run_profile_agent_node(state: CycleState, deps: Deps) -> dict[str, object]:
-    result: dict[str, object] = deps.profile_agent.run(state, deps.config)
+    pdf_path = Path(deps.config.app.resume_path)
+    result: dict[str, Any] = deps.profile_agent.run(pdf_path)
     profile_doc = result.get("profile_doc")
     if profile_doc is not None:
-        deps.profile_repo.save(profile_doc)  # type: ignore[arg-type]
+        deps.profile_repo.save(profile_doc)
     return {
         "profile": result.get("profile"),
         "search_criteria": result.get("search_criteria"),

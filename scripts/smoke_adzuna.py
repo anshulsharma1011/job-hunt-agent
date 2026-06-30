@@ -29,8 +29,8 @@ def main() -> None:
     config = load_config()
     source = AdzunaSource(config)
 
-    cfg = config.sources.get("adzuna")
-    if not cfg or not cfg.app_id or not cfg.api_key:
+    cfg = config.sources.adzuna
+    if not cfg.app_id or not cfg.api_key:
         print("✗ Adzuna credentials not set.")
         print("  Add ADZUNA_APP_ID and ADZUNA_API_KEY to your .env file.")
         print("  Register at: https://developer.adzuna.com")

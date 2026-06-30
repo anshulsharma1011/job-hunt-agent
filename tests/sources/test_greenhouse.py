@@ -40,7 +40,7 @@ def test_fetch_returns_raw_opportunities(app_config: AppConfig) -> None:
     assert opp.source == "greenhouse"
     assert opp.role_title == "Senior Backend Engineer"
     assert opp.location == "Bangalore, India"
-    assert opp.external_id.startswith("greenhouse:razorpay:")
+    assert opp.external_id.startswith("greenhouse:postman:")
 
 
 def test_fetch_filters_by_title_keywords(app_config: AppConfig) -> None:

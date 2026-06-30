@@ -2,21 +2,36 @@ greenhouse:
   policy: allowed
   enabled: true
   companies:
-    - razorpay
-    - zepto
-    - meesho
-    - browserstack
     - postman
-    - setu
-    - leadsquared
-    - freshworks
-    - chargebee
-    - hasura
-    - unacademy
     - groww
-    - cred
     - slice
-    - khatabook
+    - phonepe
+    - tcs
+    - airbnb
+    - stripe
+    - twilio
+    - datadog
+    - cloudflare
+    - pagerduty
+    - okta
+    - figma
+    - vercel
+    - netlify
+    - planetscale
+    - cockroachlabs
+    - databricks
+    - fivetran
+    - amplitude
+    - mixpanel
+    - launchdarkly
+    - contentful
+    - storyblok
+    - algolia
+    - elastic
+    - mongodb
+    - singlestore
+    - airtable
+    - digit
   max_per_run: 50
 
 indeed:

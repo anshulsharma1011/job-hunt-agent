@@ -21,6 +21,7 @@ class GreenhouseSource:
             return []
 
         title_keywords = [t.lower() for t in criteria.titles]
+        location_keywords = [loc.lower() for loc in criteria.locations]
         results: list[RawOpportunity] = []
 
         for slug in source_cfg.companies:
@@ -38,10 +39,17 @@ class GreenhouseSource:
                 if not any(kw in job_title.lower() for kw in title_keywords):
                     continue
 
-                job_id = str(job.get("id", ""))
                 location_data = job.get("location", {})
-                location = location_data.get("name", "") if isinstance(location_data, dict) else ""
+                location: str = location_data.get("name", "") if isinstance(location_data, dict) else ""
+                location_lower = location.lower()
 
+                is_remote = "remote" in location_lower
+                matches_location = any(loc in location_lower for loc in location_keywords)
+
+                if not matches_location and not (criteria.remote and is_remote):
+                    continue
+
+                job_id = str(job.get("id", ""))
                 results.append(
                     RawOpportunity(
                         source=self.name,

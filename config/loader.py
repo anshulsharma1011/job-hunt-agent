@@ -11,7 +11,7 @@ from config.app_config import AppConfig
 _config_cache: Optional[AppConfig] = None
 
 
-def _read_yaml(path: Path) -> dict:
+def _read_yaml(path: Path) -> dict[str, object]:
     with path.open() as f:
         return yaml.safe_load(f) or {}
 
@@ -34,6 +34,14 @@ def load_config(config_dir: Path = Path("config")) -> AppConfig:
     uri_override = os.environ.get("MONGODB_URI")
     if uri_override:
         merged["mongodb"]["uri"] = uri_override
+
+    sources: dict[str, dict[str, object]] = merged["sources"]  # type: ignore[assignment]
+    adzuna_app_id = os.environ.get("ADZUNA_APP_ID")
+    adzuna_api_key = os.environ.get("ADZUNA_API_KEY")
+    if adzuna_app_id:
+        sources.setdefault("adzuna", {})["app_id"] = adzuna_app_id
+    if adzuna_api_key:
+        sources.setdefault("adzuna", {})["api_key"] = adzuna_api_key
 
     _config_cache = AppConfig.model_validate(merged)
     return _config_cache

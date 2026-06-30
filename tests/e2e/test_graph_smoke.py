@@ -12,14 +12,12 @@ from pathlib import Path
 import pytest
 from pymongo import MongoClient
 
-from agents.discovery_match_agent import DiscoveryMatchAgent
 from agents.reporter_agent import ReporterAgent
 from config.loader import load_config, reset_config_cache
 from orchestrator.deps import Deps
 from orchestrator.graph import build_graph, make_initial_state
 from store.cycle_record import CycleRecord
 from store.db import get_client
-from store.experience_entry import ExperienceEntry
 from store.profile_doc import ProfileDoc
 from store.repositories.cycle_repo import CycleRepository
 from store.repositories.opportunity_repo import OpportunityRepository
@@ -31,7 +29,7 @@ TEST_DB = "test_job_hunt"
 
 
 class _StubProfileAgent:
-    """Inline stub — returns hardcoded profile without touching the PDF or LLM."""
+    """Returns a hardcoded profile without touching the PDF or LLM."""
 
     def run(self, pdf_path: Path) -> dict[str, object]:
         criteria = SearchCriteria(
@@ -56,6 +54,25 @@ class _StubProfileAgent:
             "profile_doc": profile,
             "profile": profile.model_dump(),
             "search_criteria": criteria.model_dump(),
+        }
+
+
+class _StubDiscoveryMatchAgent:
+    """Returns empty results without calling any source or LLM."""
+
+    def run(
+        self,
+        criteria: SearchCriteria,
+        profile: ProfileDoc,
+        opportunity_repo: object,
+        cycle_id: str,
+    ) -> dict[str, object]:
+        return {
+            "raw_opportunities": [],
+            "shortlisted": [],
+            "rejected": [],
+            "token_spend": 0.0,
+            "sources_queried": [],
         }
 
 
@@ -85,7 +102,7 @@ def deps(mongo_client: MongoClient) -> Deps:  # type: ignore[type-arg]
         cycle_repo=CycleRepository(db),
         source_registry=[],
         profile_agent=_StubProfileAgent(),
-        discovery_match_agent=DiscoveryMatchAgent(),
+        discovery_match_agent=_StubDiscoveryMatchAgent(),
         reporter_agent=ReporterAgent(),
     )
 
@@ -125,8 +142,8 @@ def test_graph_skips_profile_agent_when_profile_exists(deps: Deps, mongo_client:
     db["profiles"].delete_many({})
     db["cycles"].delete_many({})
 
-    seed_result = deps.profile_agent.run(Path("materials/resume.pdf"))  # type: ignore[arg-type]
-    deps.profile_repo.save(seed_result["profile_doc"])  # type: ignore[arg-type]
+    seed_result = deps.profile_agent.run(Path("materials/resume.pdf"))
+    deps.profile_repo.save(seed_result["profile_doc"])
 
     cycle_id = str(uuid.uuid4())
     deps.cycle_repo.create(

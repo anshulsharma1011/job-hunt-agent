@@ -9,7 +9,9 @@ from logging_setup import get_logger
 from orchestrator.deps import Deps
 from orchestrator.hooks import apply_budget_gate
 from orchestrator.state import CycleState
+from store.profile_doc import ProfileDoc
 from store.scored_opportunity import ScoredOpportunity
+from store.search_criteria import SearchCriteria
 
 
 def load_profile_node(state: CycleState, deps: Deps) -> dict[str, object]:
@@ -52,7 +54,14 @@ def run_discovery_match_node(state: CycleState, deps: Deps) -> dict[str, object]
     log = get_logger(__name__, state["cycle_id"])
     t0 = time.perf_counter()
     log.info("run_discovery_match: started")
-    result: dict[str, Any] = deps.discovery_match_agent.run(state, deps.config)
+    criteria = SearchCriteria.model_validate(state["search_criteria"])
+    profile = ProfileDoc.model_validate(state["profile"])
+    result: dict[str, Any] = deps.discovery_match_agent.run(
+        criteria=criteria,
+        profile=profile,
+        opportunity_repo=deps.opportunity_repo,
+        cycle_id=state["cycle_id"],
+    )
     apply_budget_gate(float(result.get("token_spend", 0.0)), deps.config)
     elapsed = time.perf_counter() - t0
     discovered = len(result.get("raw_opportunities", []))

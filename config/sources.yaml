@@ -1,7 +1,22 @@
 greenhouse:
   policy: allowed
   enabled: true
-  companies: []
+  companies:
+    - razorpay
+    - zepto
+    - meesho
+    - browserstack
+    - postman
+    - setu
+    - leadsquared
+    - freshworks
+    - chargebee
+    - hasura
+    - unacademy
+    - groww
+    - cred
+    - slice
+    - khatabook
   max_per_run: 50
 
 indeed:

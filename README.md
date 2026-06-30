@@ -9,24 +9,25 @@ An AI-powered, locally-run agent that discovers, scores, and ranks job opportuni
 ```bash
 git clone https://github.com/vladput6969/job-hunt-agent.git
 cd job-hunt-agent
-./scale_up.sh
+source ./scale_up.sh
 ```
 
-`scale_up.sh` installs and configures everything: Homebrew, Python 3.12, MongoDB, Ollama, the `llama3.1:8b` model, the Python virtualenv, and your `.env` file. Safe to re-run.
+`scale_up.sh` installs and configures everything: Homebrew, Python 3.12, MongoDB, Ollama, the `llama3.1:8b` model, the Python virtualenv, and your `.env` file. Sourcing it also activates the venv in your current shell so you can run the agent immediately. Safe to re-run.
 
 Once setup is done:
 
 ```bash
-source .venv/bin/activate
 python main.py
 ```
 
 ## Session Scripts
 
+Always use `source` so the scripts can activate/deactivate the venv in your shell.
+
 | Script | What it does |
 |--------|-------------|
-| `./scale_up.sh` | Install prerequisites, start MongoDB + Ollama, create venv, install dependencies |
-| `./scale_down.sh` | Stop MongoDB + Ollama services, remind you to deactivate the venv |
+| `source ./scale_up.sh` | Install prerequisites, start MongoDB + Ollama, create venv, install dependencies, activate venv |
+| `source ./scale_down.sh` | Stop MongoDB + Ollama services, deactivate venv |
 | `./reset.sh` | *(coming soon)* Reset the environment |
 
 ---
@@ -35,7 +36,7 @@ python main.py
 
 | Doc | Description |
 |-----|-------------|
-| [PREREQUISITES.md](docs/PREREQUISITES.md) | Manual walkthrough of what `setup.sh` installs — useful if you prefer to install things yourself |
+| [PREREQUISITES.md](docs/PREREQUISITES.md) | Manual walkthrough of what `scale_up.sh` installs — useful if you prefer to install things yourself |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture, design principles, agent roster |
 | [HLD.md](docs/HLD.md) | High Level Design — components, tech stack, phased delivery |
 

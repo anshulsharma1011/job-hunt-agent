@@ -64,7 +64,7 @@ def _fetch_slug(slug: str, title_keywords: list[str], session: requests.Session)
 
 def main() -> None:
     config = load_config()
-    slugs = config.sources["greenhouse"].companies
+    slugs = config.sources.greenhouse.companies
     keywords = [t.lower() for t in CRITERIA.titles]
 
     print(f"Querying {len(slugs)} slugs with {_WORKERS} workers...\n")

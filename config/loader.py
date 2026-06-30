@@ -16,6 +16,13 @@ def _read_yaml(path: Path) -> dict[str, object]:
         return yaml.safe_load(f) or {}
 
 
+def _read_yaml_optional(path: Path) -> dict[str, object]:
+    if not path.exists():
+        return {}
+    with path.open() as f:
+        return yaml.safe_load(f) or {}
+
+
 def _load_sources(yaml_dir: Path) -> dict[str, dict[str, object]]:
     sources_dir = yaml_dir / "sources"
     sources: dict[str, dict[str, object]] = {}
@@ -34,6 +41,7 @@ def load_config(config_dir: Path = Path("config")) -> AppConfig:
     merged: dict[str, object] = {
         "app": _read_yaml(yaml_dir / "app.yaml"),
         "llm": _read_yaml(yaml_dir / "llm.yaml"),
+        "log": _read_yaml_optional(yaml_dir / "log.yaml"),
         "matching": _read_yaml(yaml_dir / "matching.yaml"),
         "sources": _load_sources(yaml_dir),
         "mongodb": _read_yaml(yaml_dir / "mongodb.yaml"),

@@ -10,7 +10,7 @@
 | T4 | Store — DB + Repositories | `done` | T3 | [T4-repositories.md](plans/T4-repositories.md) |
 | T5 | LLM Client | `done` | T2 | [T5-llm-client.md](plans/T5-llm-client.md) |
 | T6 | Prompt Templates | `done` | T1 | [T6-prompts.md](plans/T6-prompts.md) |
-| T7 | Source Layer | `pending` | T2, T3 | [T7-sources.md](plans/T7-sources.md) |
+| T7 | Source Layer | `done` | T2, T3 | [T7-sources.md](plans/T7-sources.md) |
 | T8 | Orchestrator — State + Errors + Router | `pending` | T3 | [T8-orch-state.md](plans/T8-orch-state.md) |
 | T9 | Orchestrator — Hooks | `pending` | T4, T7, T8 | [T9-orch-hooks.md](plans/T9-orch-hooks.md) |
 | T10 | Orchestrator — Nodes + Graph | `pending` | T5, T6, T8, T9 | [T10-orch-graph.md](plans/T10-orch-graph.md) |

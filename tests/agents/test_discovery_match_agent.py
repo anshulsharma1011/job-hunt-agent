@@ -78,6 +78,7 @@ def mock_source() -> MagicMock:
 def mock_repo() -> MagicMock:
     repo = MagicMock()
     repo.get_known_external_ids.return_value = set()
+    repo.get_by_cycle.return_value = []
     return repo
 
 
@@ -118,7 +119,8 @@ def test_fetch_all_respects_max_per_cycle(
         cycle_id="cycle-001",
     )
 
-    assert len(result["raw_opportunities"]) == 2
+    # all 5 are fetched but only 2 (cap) are scored after dedup
+    assert len(result["raw_opportunities"]) == 5
     assert mock_llm.complete.call_count == 2
 
 

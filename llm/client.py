@@ -11,6 +11,15 @@ from orchestrator.errors import LLMTimeoutError, SchemaValidationError
 _log = logging.getLogger(__name__)
 
 
+def _extract_json(text: str) -> str:
+    """Strip markdown fences and extract the outermost JSON object."""
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        return text[start : end + 1]
+    return text
+
+
 class LLMClient:
     def __init__(self, config: LLMConfig) -> None:
         self._config = config
@@ -50,14 +59,14 @@ class LLMClient:
         _log.debug("complete_json: schema=%s", schema.__name__)
         text, tokens = self.complete(system, user)
         try:
-            result = schema.model_validate_json(text)
+            result = schema.model_validate_json(_extract_json(text))
             _log.debug("complete_json: parsed schema=%s tokens=%d", schema.__name__, tokens)
             return result
         except ValidationError:
             _log.warning("complete_json: first attempt failed for schema=%s — retrying", schema.__name__)
             text, tokens = self.complete(system, user)
             try:
-                result = schema.model_validate_json(text)
+                result = schema.model_validate_json(_extract_json(text))
                 _log.debug("complete_json: retry succeeded schema=%s tokens=%d", schema.__name__, tokens)
                 return result
             except ValidationError as exc:

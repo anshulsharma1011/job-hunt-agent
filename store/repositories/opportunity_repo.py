@@ -23,6 +23,14 @@ class OpportunityRepository:
         _log.debug("get_known_external_ids: source=%s found=%d", source, len(ids))
         return ids
 
+    def upsert_one(self, opportunity: ScoredOpportunity) -> None:
+        _log.debug("upsert_one: opportunity_id=%s score=%d", opportunity.opportunity_id, opportunity.score)
+        self._col.replace_one(
+            {"opportunity_id": opportunity.opportunity_id},
+            opportunity.model_dump(),
+            upsert=True,
+        )
+
     def upsert_many(self, opportunities: list[ScoredOpportunity]) -> None:
         if not opportunities:
             _log.debug("upsert_many: nothing to upsert")

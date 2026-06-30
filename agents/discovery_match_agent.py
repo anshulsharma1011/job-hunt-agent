@@ -8,7 +8,7 @@ from uuid import uuid4
 from pydantic import BaseModel, ValidationError
 
 from config.app_config import AppConfig
-from llm.client import LLMClient
+from llm.client import LLMClient, _extract_json
 from orchestrator.errors import SchemaValidationError, SourceBlockedError
 from orchestrator.hooks import apply_dedup, apply_source_policy
 from prompts.loader import load_prompt
@@ -54,13 +54,16 @@ class DiscoveryMatchAgent:
             cycle_id,
         )
         deduped = apply_dedup(raw, opportunity_repo)
+        cap = self._config.matching.max_per_cycle
+        fresh = deduped[:cap]
         _log.debug(
-            "run: after_dedup=%d removed=%d cycle_id=%s",
+            "run: after_dedup=%d removed=%d fresh_capped=%d cycle_id=%s",
             len(deduped),
             len(raw) - len(deduped),
+            len(fresh),
             cycle_id,
         )
-        scored, token_spend = self._score_batch(deduped, profile, cycle_id)
+        scored, token_spend = self._score_batch(fresh, profile, cycle_id, opportunity_repo)
         threshold = self._config.matching.score_threshold
         shortlisted = [o for o in scored if o.score >= threshold]
         rejected = [o for o in scored if o.score < threshold]
@@ -83,7 +86,6 @@ class DiscoveryMatchAgent:
     def _fetch_all(self, criteria: SearchCriteria) -> tuple[list[RawOpportunity], list[str]]:
         raw: list[RawOpportunity] = []
         sources_queried: list[str] = []
-        cap = self._config.matching.max_per_cycle
         for source in self._sources:
             try:
                 apply_source_policy(source.name, self._config)
@@ -99,9 +101,7 @@ class DiscoveryMatchAgent:
                 len(fetched),
                 len(raw),
             )
-            if len(raw) >= cap:
-                break
-        return raw[:cap], sources_queried
+        return raw, sources_queried
 
     def _score(
         self, opp: RawOpportunity, profile: ProfileDoc, cycle_id: str
@@ -120,13 +120,13 @@ class DiscoveryMatchAgent:
         )
         text, tokens = self._llm.complete(system=self._prompt.system, user=user_msg)
         try:
-            result = _ScoreResult.model_validate_json(text)
+            result = _ScoreResult.model_validate_json(_extract_json(text))
         except ValidationError:
             _log.warning("_score: parse failed for %s — retrying", opp.external_id)
             text2, tokens2 = self._llm.complete(system=self._prompt.system, user=user_msg)
             tokens += tokens2
             try:
-                result = _ScoreResult.model_validate_json(text2)
+                result = _ScoreResult.model_validate_json(_extract_json(text2))
             except ValidationError as exc:
                 raise SchemaValidationError(
                     f"Score result did not match schema for {opp.external_id} after retry"
@@ -151,24 +151,45 @@ class DiscoveryMatchAgent:
         return scored, tokens
 
     def _score_batch(
-        self, opps: list[RawOpportunity], profile: ProfileDoc, cycle_id: str
+        self,
+        opps: list[RawOpportunity],
+        profile: ProfileDoc,
+        cycle_id: str,
+        opportunity_repo: OpportunityRepository,
     ) -> tuple[list[ScoredOpportunity], float]:
         if not opps:
             _log.debug("_score_batch: nothing to score")
             return [], 0.0
-        total_tokens = 0
-        lock = threading.Lock()
 
-        def _score_tracked(opp: RawOpportunity) -> ScoredOpportunity:
+        previously_scored = opportunity_repo.get_by_cycle(cycle_id)
+        already_scored_ids = {o.raw.external_id for o in previously_scored}
+        remaining = [o for o in opps if o.external_id not in already_scored_ids]
+        _log.debug(
+            "_score_batch: total=%d already_scored=%d to_score=%d",
+            len(opps),
+            len(already_scored_ids),
+            len(remaining),
+        )
+
+        total_tokens = 0
+        token_lock = threading.Lock()
+        new_results: list[ScoredOpportunity] = []
+        results_lock = threading.Lock()
+
+        def _score_tracked(opp: RawOpportunity) -> None:
             nonlocal total_tokens
             scored, tokens = self._score(opp, profile, cycle_id)
-            with lock:
+            opportunity_repo.upsert_one(scored)
+            with token_lock:
                 total_tokens += tokens
-            return scored
+            with results_lock:
+                new_results.append(scored)
 
         max_workers = self._config.matching.max_concurrent_scoring
-        _log.debug("_score_batch: scoring %d opps max_workers=%d", len(opps), max_workers)
+        _log.debug("_score_batch: scoring %d opps max_workers=%d", len(remaining), max_workers)
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(_score_tracked, opp) for opp in opps]
-            results = [f.result() for f in futures]
-        return results, float(total_tokens)
+            futures = [executor.submit(_score_tracked, opp) for opp in remaining]
+            for f in futures:
+                f.result()
+
+        return previously_scored + new_results, float(total_tokens)

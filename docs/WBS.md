@@ -12,7 +12,7 @@
 | T6 | Prompt Templates | `done` | T1 | [T6-prompts.md](plans/T6-prompts.md) |
 | T7 | Source Layer | `done` | T2, T3 | [T7-sources.md](plans/T7-sources.md) |
 | T8 | Orchestrator — State + Errors + Router | `done` | T3 | [T8-orch-state.md](plans/T8-orch-state.md) |
-| T9 | Orchestrator — Hooks | `pending` | T4, T7, T8 | [T9-orch-hooks.md](plans/T9-orch-hooks.md) |
+| T9 | Orchestrator — Hooks | `done` | T4, T7, T8 | [T9-orch-hooks.md](plans/T9-orch-hooks.md) |
 | T10 | Orchestrator — Nodes + Graph | `pending` | T5, T6, T8, T9 | [T10-orch-graph.md](plans/T10-orch-graph.md) |
 | T11 | Profile Agent | `pending` | T5, T6 | [T11-profile-agent.md](plans/T11-profile-agent.md) |
 | T12 | Discovery + Match Agent | `pending` | T5, T6, T7 | [T12-discovery-agent.md](plans/T12-discovery-agent.md) |

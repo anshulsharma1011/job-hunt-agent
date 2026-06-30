@@ -1,0 +1,5 @@
+policy: allowed
+enabled: true
+location: "India"
+max_per_run: 50
+# app_id and api_key loaded from ADZUNA_APP_ID / ADZUNA_API_KEY env vars

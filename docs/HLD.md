@@ -1,8 +1,8 @@
 # Job Hunt Agent — High Level Design
 
 **Author:** Anshul Sharma
-**Status:** Draft v1
-**Last Updated:** 2026-06-29
+**Status:** Draft v2 — T1–T7, T20 implemented
+**Last Updated:** 2026-06-30
 
 ---
 
@@ -31,7 +31,8 @@ An AI-powered, locally-run job hunting agent that autonomously discovers, scores
 │   load_profile → run_discovery_match → store_results → run_reporter  │
 │                        │                                             │
 │                    HOOK LAYER                                        │
-│              (dedup · rate limiter · schema validator)               │
+│     (dedup · rate limiter · schema validator · source policy         │
+│      · budget gate)                                                  │
 └────────┬─────────────────────────────────┬────────────────┬──────────┘
          │                                 │                │
          ▼                                 ▼                ▼
@@ -43,13 +44,18 @@ An AI-powered, locally-run job hunting agent that autonomously discovers, scores
 │ SearchCriteria  │             │ against profile   │  │ .txt report│
 └─────────────────┘             └────────┬─────────┘  └────────────┘
                                          │
-                          ┌──────────────┼───────────────┐
-                          ▼              ▼               ▼
-                   ┌────────────┐ ┌──────────┐ ┌─────────────┐
-                   │ Greenhouse │ │  Indeed  │ │  LinkedIn   │
-                   │    API     │ │   RSS    │ │    RSS      │
-                   └────────────┘ └──────────┘ └─────────────┘
-                                    + Naukri (human-assisted)
+                    ┌────────────────────┼────────────────────┐
+                    │           ┌────────┴──────┐             │
+                    ▼           ▼               ▼             ▼
+             ┌──────────┐ ┌──────────┐ ┌──────────────┐ ┌──────────┐
+             │Greenhouse│ │  Adzuna  │ │  WeWorkRemot.│ │ RemoteOK │
+             │REST API  │ │REST API  │ │     RSS      │ │ JSON API │
+             └──────────┘ └──────────┘ └──────────────┘ └──────────┘
+                    ▼           ▼               ▼
+             ┌──────────┐ ┌──────────┐ ┌──────────────────────────────┐
+             │ LinkedIn │ │  Indeed  │ │  Naukri (human-assisted)     │
+             │ (jobspy) │ │ (jobspy) │ │  You paste HTML → agent reads│
+             └──────────┘ └──────────┘ └──────────────────────────────┘
                                          │
                                          ▼
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -74,7 +80,7 @@ The central coordinator. Owns the state machine and all transitions. No agent ca
 - Built on **LangGraph StateGraph** with a typed `CycleState` shared across all nodes.
 - **MongoDBSaver checkpointer** — crash mid-cycle resumes from last completed node, no work lost.
 - Conditional routing: if no profile exists → trigger Profile Agent first; otherwise go straight to Discovery.
-- All hook logic (dedup, rate limiting, schema validation) lives here, not inside agents.
+- All hook logic (dedup, rate limiting, schema validation, source policy, budget gate) lives here, not inside agents.
 
 **Opportunity lifecycle states:**
 
@@ -108,31 +114,42 @@ Interception points the orchestrator runs around agent actions. Enforced in code
 
 | Hook | When it fires | What it does |
 |------|--------------|--------------|
-| Rate Limiter | Pre-discovery | Caps requests per source per cycle |
 | Source Policy | Pre-fetch | Blocks disallowed sources; flags human-assisted ones |
+| Rate Limiter | Pre-fetch | Caps requests per source per cycle |
+| Budget Gate | Pre-agent | Hard-stops if token spend exceeds config limit |
 | Schema Validator | Post-agent output | Rejects malformed output; triggers retry |
 | Dedup | Post-discovery | Drops opportunity IDs already in the store |
-| Budget Gate | Post-cycle | Hard-stops if token spend exceeds config limit |
 
 ---
 
 ## 4. Job Sources
 
-| Source | Method | Policy |
-|--------|--------|--------|
-| Greenhouse | Public REST API | Allowed |
-| Indeed | RSS feed | Allowed |
-| LinkedIn | RSS feed (low volume) | Allowed |
-| Naukri | Human-assisted (you fetch, agent parses) | Human-assisted |
+| Source | Method | Policy | Notes |
+|--------|--------|--------|-------|
+| Greenhouse | Public REST API (per-company board) | Allowed | 154 verified company slugs in config |
+| Adzuna | REST API (free tier) | Allowed | India endpoint; requires `ADZUNA_APP_ID` / `ADZUNA_API_KEY` |
+| RemoteOK | JSON API | Allowed | No credentials; keyword filtering client-side |
+| WeWorkRemotely | RSS feeds | Allowed | Feed categories configurable in YAML |
+| LinkedIn | python-jobspy | Allowed | Mimics browser TLS fingerprint; no credentials needed |
+| Indeed | python-jobspy | Allowed | `country_indeed=India` routes to `in.indeed.com` |
+| Google Jobs | python-jobspy | Allowed (disabled) | Geo-restricted in India — currently returns 0 results |
+| Naukri | Human-assisted | Human-assisted | You open browser, paste HTML — agent parses. Never automated. |
 
-**Rule:** No headless browser automation on any source. No fake accounts. Official APIs and RSS feeds only for automated discovery.
+**Planned (post Phase 1):**
+- **Glassdoor** (T21) — via python-jobspy; adds salary range data useful for scoring.
+- **Greenhouse slug expansion** (T19) — move 1000+ slug candidates from config into MongoDB.
+
+**Hard rules:**
+- No headless browser automation (Playwright / Puppeteer / Selenium) on any source.
+- No fake accounts. `robots.txt` respected on all sources.
+- Naukri is permanently `human-assisted` — never promote to `allowed`.
 
 ---
 
 ## 5. LLM Layer
 
 - **Phase 1:** Ollama running locally (`llama3.1:8b`) — zero cost, offline capable.
-- **Phase 2+:** Swap to Claude API (`claude-sonnet-4-6`) for draft quality.
+- **Phase 2+:** Swap to a cloud frontier model for draft quality.
 - **Abstraction:** All agents call through a single `LLMClient` wrapper (LiteLLM). Switching models is a one-line config change with no agent code changes.
 
 ---
@@ -160,13 +177,17 @@ Local MongoDB installed via Homebrew — no Docker, no VM overhead.
 | Language | Python 3.12 | Best AI/agent ecosystem |
 | Orchestration | LangGraph | Built-in state machine, checkpointing, parallelism |
 | LLM (Phase 1) | Ollama `llama3.1:8b` | Free, local, good enough for scoring |
-| LLM (Phase 2+) | Claude API via LiteLLM | Draft quality requires frontier model |
+| LLM (Phase 2+) | Cloud frontier model via LiteLLM | Draft quality requires frontier model |
 | LLM Abstraction | LiteLLM | Single interface across all LLM providers |
 | Data Store | MongoDB (local Homebrew) | Document-native fit for nested job/profile data |
+| Job scraping | python-jobspy | TLS-fingerprint scraping for LinkedIn, Indeed, Google Jobs |
+| RSS parsing | feedparser | WeWorkRemotely RSS feeds |
 | PDF Parsing | pdfplumber | Best for real-world resume layouts |
 | CLI | Rich + questionary | Tables, color, interactive prompts |
 | Scheduler | APScheduler | Embedded cron, no system dependencies |
-| Config | config.yaml + .env | Source policy, thresholds, secrets separation |
+| Config — Python | Per-source Pydantic models in `config/sources/` | One class per source, typed attribute access |
+| Config — Data | Per-source YAML files in `config/yaml/sources/` | Data editable without touching Python |
+| Secrets | `.env` (gitignored); python-dotenv | Credentials never in code or YAML |
 
 ---
 
@@ -190,7 +211,7 @@ Local MongoDB installed via Homebrew — no Docker, no VM overhead.
 - Approval queue in CLI: batch review (approve / edit / reject)
 - Send Executor: only component with outbound credentials; sandbox mode first
 - Warm intro intelligence: surface 2nd-degree connection paths for human action
-- Switch LLM to Claude API for draft quality
+- Switch LLM to cloud frontier model for draft quality
 - Adds: `outreach_log`, `feedback`, `suppression` collections
 
 **Done when:** 10+ approvals sent with acceptable edit rate.
@@ -209,12 +230,14 @@ Local MongoDB installed via Homebrew — no Docker, no VM overhead.
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Orchestration model | Centralized (LangGraph) | 1 place for hooks, logging, approval — not 28 peer-to-peer channels |
+| Orchestration model | Centralized (LangGraph) | 1 place for hooks, logging, approval — not peer-to-peer agent chatter |
 | No outbound in Phase 1 | Hard constraint | Validate match quality before building anything that touches outside world |
-| LLM abstraction via LiteLLM | Yes | Phase 1 Ollama, Phase 2 Claude — zero agent rewrites |
+| LLM abstraction via LiteLLM | Yes | Phase 1 Ollama, Phase 2 cloud — zero agent rewrites on swap |
 | MongoDB over SQLite | MongoDB | Opportunities/profiles are nested documents, not flat rows |
 | No Docker | Homebrew MongoDB | Docker VM overhead on macOS is unnecessary for a local tool |
-| Naukri human-assisted | Yes | No public API; headless scraping risks account ban |
+| Naukri human-assisted | Permanent | No public API; headless scraping risks account ban — never automate |
+| python-jobspy for LinkedIn/Indeed | Yes | RSS blocked; jobspy uses TLS fingerprinting to mimic a real browser without fake accounts |
+| Per-source config models | Yes | `IndeedConfig` can carry `country` without polluting shared `JobSpyConfig` |
 | Draft Agent has no send capability | Hard constraint | Sending is a separate gated step; agents structurally cannot send |
 
 ---

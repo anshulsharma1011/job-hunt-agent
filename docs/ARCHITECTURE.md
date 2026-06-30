@@ -1,8 +1,8 @@
 # Job Hunt Agent — System Architecture
 
 **Author:** Anshul Sharma
-**Status:** Draft v2 (decisions locked, pre-implementation)
-**Last updated:** 2026-06-29
+**Status:** Draft v2 — T1–T7, T20 implemented
+**Last updated:** 2026-06-30
 
 A locally-run, India-first agent system that finds, scores, and ranks job opportunities against a structured user profile — and in later phases, drafts applications and outreach for human approval before anything leaves the system. Coordinated by a LangGraph state machine, backed by a local MongoDB store, and powered by a local LLM via Ollama.
 
@@ -45,10 +45,13 @@ A locally-run, India-first agent system that finds, scores, and ranks job opport
 │  Profile Agent  │                  │   Discovery + Match Agent   │
 │                 │                  │                             │
 │  PDF resume     │                  │  Greenhouse API             │
-│       ↓         │                  │  Indeed RSS                 │
-│  ProfileDoc +   │                  │  LinkedIn RSS               │
-│  SearchCriteria │                  │  Naukri (human-assisted)    │
-└─────────────────┘                  │       ↓                     │
+│       ↓         │                  │  Adzuna REST API            │
+│  ProfileDoc +   │                  │  RemoteOK JSON API          │
+│  SearchCriteria │                  │  WeWorkRemotely RSS         │
+└─────────────────┘                  │  LinkedIn (jobspy)          │
+                                     │  Indeed (jobspy)            │
+                                     │  Naukri (human-assisted)    │
+                                     │       ↓                     │
                                      │  Score + rank vs profile    │
                                      │  ScoredOpportunity[]        │
                                      └─────────────────────────────┘
@@ -116,32 +119,76 @@ discovered → scored → shortlisted / rejected
 
 ## 5. Job Sources
 
-| Source | Method | Policy |
-|--------|--------|--------|
-| Greenhouse | Public REST API | Allowed — default on |
-| Indeed | RSS feed | Allowed — default on |
-| LinkedIn | RSS feed (low volume) | Allowed — max 5 requests/cycle |
-| Naukri | Human-assisted | You open browser, paste URL — agent parses. No headless automation. |
+| Source | Method | Policy | Notes |
+|--------|--------|--------|-------|
+| Greenhouse | Public REST API (per-company board) | Allowed | 154 verified company slugs; slug list in `config/yaml/sources/greenhouse.yaml` |
+| Adzuna | REST API (free tier) | Allowed | India endpoint; credentials via `ADZUNA_APP_ID` / `ADZUNA_API_KEY` env vars |
+| RemoteOK | JSON API | Allowed | No credentials; client-side keyword filtering |
+| WeWorkRemotely | RSS feeds | Allowed | Feed categories configurable via `config/yaml/sources/weworkremotely.yaml` |
+| LinkedIn | python-jobspy | Allowed | Mimics browser TLS fingerprint; no credentials needed |
+| Indeed | python-jobspy | Allowed | `country_indeed=India` for regional endpoint; no credentials needed |
+| Google Jobs | python-jobspy | Allowed (disabled) | Geo-restricted in India — returns 0 results; re-enable when jobspy fixes regional support |
+| Naukri | Human-assisted | Human-assisted | You open browser, paste HTML — agent parses. Never automated. |
+
+**Planned (post Phase 1):**
+- **Glassdoor** (T21) — via python-jobspy; adds salary range data (`min_amount`, `max_amount`) useful for scoring.
+- **Greenhouse slug expansion** (T19) — move 1000+ slug candidates from config into MongoDB `greenhouse_slugs` collection.
 
 **Hard rules enforced by source-policy hook:**
 - No headless browser automation (Playwright / Puppeteer / Selenium) on any source.
 - No fake accounts.
 - `robots.txt` respected on all sources.
-- Source policy table lives in `config.yaml` — the hook reads it before every fetch.
+- Naukri is permanently `human-assisted` — never promote to `allowed`.
+- Source policy table lives in `config/yaml/sources/` — the hook reads it before every fetch.
 
 ---
 
-## 6. Compliance
+## 6. Config Layer
+
+All configuration lives under `config/` (Python models) and `config/yaml/` (data files). Python and YAML are intentionally separated so data files can be edited without touching code.
+
+```
+config/
+  app_config.py            ← AppConfig root aggregate
+  app_section.py           ← AppSection (name, env)
+  llm_config.py            ← LLMConfig
+  matching_config.py       ← MatchingConfig
+  mongo_config.py          ← MongoConfig
+  output_config.py         ← OutputConfig
+  scheduler_config.py      ← SchedulerConfig
+  loader.py                ← reads yaml/, applies env var overrides
+  sources/
+    base.py                ← SourcePolicyBase (policy, enabled)
+    jobspy_config.py       ← JobSpyConfig (max_results, hours_old) — shared by LinkedIn, Indeed, Google
+    indeed_config.py       ← IndeedConfig extends JobSpyConfig (+ country)
+    greenhouse_config.py   ← GreenhouseConfig (companies list, max_per_run)
+    adzuna_config.py       ← AdzunaConfig (app_id, api_key, location, max_per_run)
+    remoteok_config.py     ← RemoteOKConfig
+    weworkremotely_config.py ← WeWorkRemotelyConfig (categories list)
+    naukri_config.py       ← NaukriConfig
+    sources_config.py      ← SourcesConfig aggregate (named fields, one per source)
+  yaml/
+    app.yaml · llm.yaml · matching.yaml · mongodb.yaml · output.yaml · scheduler.yaml
+    sources/
+      greenhouse.yaml · adzuna.yaml · remoteok.yaml · weworkremotely.yaml
+      linkedin.yaml · indeed.yaml · google.yaml · naukri.yaml
+```
+
+Sources are accessed as typed attributes (`config.sources.greenhouse`, `config.sources.adzuna`, etc.) — no dict lookups, no Optional guards.
+
+---
+
+## 7. Compliance
 
 **Target geography: India-first.** India has no CAN-SPAM equivalent. The DPDPA 2023 applies to processing Indian residents' personal data — keep scraped contact data minimal and purposeful.
 
 **US/EU recipients:** If any source returns roles at US or EU-headquartered companies, those go into a separate bucket. CAN-SPAM applies to emails sent to US recipients regardless of sender location. GDPR applies to EU recipients. Phase 2 will gate these behind an additional flag before the Draft Agent processes them.
 
-**Scraping:** Only sanctioned APIs and RSS feeds are automated. Naukri is human-assisted (see Section 5). No platform is scraped headlessly.
+**Scraping:** Only sanctioned APIs and structured feeds are automated. python-jobspy is used for LinkedIn and Indeed — it targets public job listing pages without fake accounts or headless browsers. Naukri is human-assisted (see Section 5).
 
 ---
 
-## 7. Hook Layer
+## 8. Hook Layer
 
 Hooks are interception points the orchestrator runs around agent actions.
 
@@ -160,7 +207,7 @@ Hooks are interception points the orchestrator runs around agent actions.
 
 ---
 
-## 8. Shared Context Store
+## 9. Shared Context Store
 
 Local **MongoDB** installed via Homebrew. No Docker, no VM overhead.
 
@@ -174,6 +221,7 @@ Local **MongoDB** installed via Homebrew. No Docker, no VM overhead.
 | `suppression` | Do-not-contact list, opted-out contacts | Phase 2 |
 | `feedback` | Approve/edit/reject decisions + diffs of your edits | Phase 2 |
 | `learnings` | Distilled per-agent rules injected into prompts next cycle | Phase 3 |
+| `greenhouse_slugs` | Verified Greenhouse company slugs (T19 enhancement) | Post Phase 1 |
 
 **How learning works (Phase 3, no model training required):**
 1. Every approval-gate decision captured as structured feedback (approved / approved-with-edits / rejected + reason).
@@ -182,7 +230,7 @@ Local **MongoDB** installed via Homebrew. No Docker, no VM overhead.
 
 ---
 
-## 9. End-to-End Flow (Phase 1 Cycle)
+## 10. End-to-End Flow (Phase 1 Cycle)
 
 1. **Trigger.** CLI command or APScheduler cron fires the LangGraph graph.
 2. **Load profile.** Orchestrator reads active `ProfileDoc` from MongoDB. If none exists, routes to Profile Agent first.
@@ -193,7 +241,7 @@ Local **MongoDB** installed via Homebrew. No Docker, no VM overhead.
 
 ---
 
-## 10. Technology Stack
+## 11. Technology Stack
 
 | Layer | Choice |
 |-------|--------|
@@ -203,14 +251,18 @@ Local **MongoDB** installed via Homebrew. No Docker, no VM overhead.
 | LLM — Phase 2+ | Cloud frontier model via LiteLLM |
 | LLM abstraction | LiteLLM (swap model via config, zero agent changes) |
 | Data store | MongoDB (local, Homebrew — no Docker) |
+| Job scraping | python-jobspy (LinkedIn, Indeed, Google Jobs) |
+| RSS parsing | feedparser (WeWorkRemotely) |
 | PDF parsing | pdfplumber |
 | CLI | Rich + questionary |
 | Scheduler | APScheduler (embedded, no system cron) |
-| Config | `config.yaml` + `.env` (secrets separated) |
+| Config — Python | Per-concern Pydantic models in `config/` and `config/sources/` |
+| Config — Data | Per-source YAML files in `config/yaml/sources/` |
+| Secrets | `.env` (gitignored); loaded via python-dotenv |
 
 ---
 
-## 11. Build Sequence
+## 12. Build Sequence
 
 | Phase | What ships | Risk |
 |-------|-----------|------|
